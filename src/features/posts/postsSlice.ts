@@ -17,7 +17,7 @@ export interface Reactions {
 }
 
 export interface Post {
-  id: string;
+  id: number;
   title: string;
   body: string;
   userId: number;
@@ -32,25 +32,6 @@ export const initialReactions: Reactions = {
   rocket: 0,
   coffee: 0,
 };
-
-const mockPosts: Post[] = [
-  {
-    id: '1',
-    title: 'Learning Redux Toolkit',
-    body: "I've heard good things.",
-    userId: 0,
-    date: sub(new Date(), { minutes: 10 }).toISOString(),
-    reactions: initialReactions,
-  },
-  {
-    id: '2',
-    title: 'Slices...',
-    body: 'The more I say slice, the more I want pizza',
-    userId: 1,
-    date: sub(new Date(), { minutes: 5 }).toISOString(),
-    reactions: initialReactions,
-  },
-];
 
 const initialState = {
   posts: [] as Post[],
@@ -74,6 +55,25 @@ export const addNewPost = createAsyncThunk<
   return response.data;
 });
 
+export const updatePost = createAsyncThunk<Post, Omit<Post, 'date'>>(
+  'posts/updatePost',
+  async (initialPost) => {
+    const { id } = initialPost;
+    const response = await axios.put<Post>(`${POSTS_URL}/${id}`, initialPost);
+    return { ...initialPost, ...response.data };
+  }
+);
+
+export const deletePost = createAsyncThunk<
+  Pick<Post, 'id'> | string,
+  Pick<Post, 'id'>
+>('posts/deletePost', async (initialPost) => {
+  const { id } = initialPost;
+  const response = await axios.delete<Post>(`${POSTS_URL}/${id}`);
+  if (response?.status === 200) return initialPost;
+  return `${response?.status}: ${response?.statusText}`;
+});
+
 const postsSlice = createSlice({
   name: 'posts',
   initialState,
@@ -93,7 +93,7 @@ const postsSlice = createSlice({
     },
     reactionAdded: (
       state,
-      action: PayloadAction<{ postId: string; reaction: keyof Reactions }>
+      action: PayloadAction<{ postId: number; reaction: keyof Reactions }>
     ) => {
       const { postId, reaction } = action.payload;
       const existingPost = state.posts.find((post) => post.id === postId);
@@ -129,6 +129,27 @@ const postsSlice = createSlice({
         action.payload.date = new Date().toISOString();
         action.payload.reactions = { ...initialReactions };
         state.posts.push(action.payload);
+      })
+      .addCase(updatePost.fulfilled, (state, action) => {
+        if (!action.payload?.id) {
+          console.log('Update could not complete');
+          console.log(action.payload);
+          return;
+        }
+        const { id } = action.payload;
+        action.payload.date = new Date().toISOString();
+        const posts = state.posts.filter((post) => post.id !== id);
+        state.posts = [...posts, action.payload];
+      })
+      .addCase(deletePost.fulfilled, (state, action) => {
+        if (typeof action.payload === 'string' || !action.payload?.id) {
+          console.log('Delete could not complete');
+          console.log(action.payload);
+          return;
+        }
+        const { id } = action.payload;
+        const posts = state.posts.filter((post) => post.id !== id);
+        state.posts = posts;
       });
   },
 });
@@ -136,6 +157,9 @@ const postsSlice = createSlice({
 export const selectAllPosts = (state: RootState) => state.posts.posts;
 export const getPostsStatus = (state: RootState) => state.posts.status;
 export const getPostsError = (state: RootState) => state.posts.error;
+
+export const selectPostById = (state: RootState, postId: number) =>
+  state.posts.posts.find((post) => post.id === postId);
 
 export const { postAdded, reactionAdded } = postsSlice.actions;
 

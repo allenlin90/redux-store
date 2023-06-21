@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 import { addNewPost } from '~/features/posts/postsSlice';
 import { selectAllUsers } from '../users';
@@ -7,6 +8,7 @@ import { useDispatchTyped } from '~/app/store';
 
 export const AddPostForm: React.FC = () => {
   const dispatch = useDispatchTyped();
+  const navigate = useNavigate();
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -39,6 +41,7 @@ export const AddPostForm: React.FC = () => {
         setTitle('');
         setContent('');
         setUserId('');
+        navigate('/');
       }
     } catch (error) {
       console.error('Failed to save the post', error);

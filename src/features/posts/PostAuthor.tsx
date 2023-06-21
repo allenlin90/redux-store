@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
 import { selectAllUsers } from '../users';
 
-export const PostAuthor: React.FC<{ userId: string }> = ({ userId }) => {
+export const PostAuthor: React.FC<{ userId: number }> = ({ userId }) => {
   const users = useSelector(selectAllUsers);
 
   const author = users.find((user) => user.id === userId);
