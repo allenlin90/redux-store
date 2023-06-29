@@ -4,7 +4,7 @@ import {
   type PayloadAction,
   createSlice,
   createAsyncThunk,
-  nanoid,
+  createSelector,
 } from '@reduxjs/toolkit';
 import { RootState } from '~/app/store';
 
@@ -37,6 +37,7 @@ const initialState = {
   posts: [] as Post[],
   status: 'idle' as Status,
   error: null as any,
+  count: 0,
 };
 
 const POSTS_URL = 'https://jsonplaceholder.typicode.com/posts';
@@ -78,19 +79,6 @@ const postsSlice = createSlice({
   name: 'posts',
   initialState,
   reducers: {
-    postAdded: {
-      reducer: (state, action: PayloadAction<Post>) => {
-        state.posts.push(action.payload);
-      },
-      prepare: (args: Omit<Post, 'id' | 'date' | 'reactions'>) => ({
-        payload: {
-          id: nanoid(),
-          date: new Date().toISOString(),
-          reactions: initialReactions,
-          ...args,
-        },
-      }),
-    },
     reactionAdded: (
       state,
       action: PayloadAction<{ postId: number; reaction: keyof Reactions }>
@@ -100,6 +88,9 @@ const postsSlice = createSlice({
       if (existingPost) {
         existingPost.reactions[reaction]++;
       }
+    },
+    increaseCount: (state) => {
+      state.count += 1;
     },
   },
   extraReducers: (builder) => {
@@ -157,10 +148,16 @@ const postsSlice = createSlice({
 export const selectAllPosts = (state: RootState) => state.posts.posts;
 export const getPostsStatus = (state: RootState) => state.posts.status;
 export const getPostsError = (state: RootState) => state.posts.error;
+export const getCount = (state: RootState) => state.posts.count;
 
 export const selectPostById = (state: RootState, postId: number) =>
   state.posts.posts.find((post) => post.id === postId);
 
-export const { postAdded, reactionAdded } = postsSlice.actions;
+export const selectPostByUser = createSelector(
+  [selectAllPosts, (_state: RootState, userId) => userId],
+  (posts, userId) => posts.filter((post) => post.userId === userId)
+);
+
+export const { increaseCount, reactionAdded } = postsSlice.actions;
 
 export default postsSlice.reducer;

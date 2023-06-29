@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Navigate, Routes, Route } from 'react-router-dom';
 
 import { Layout } from '~/components';
 import {
@@ -6,6 +6,8 @@ import {
   EditPostForm,
   PostsList,
   SinglePostPage,
+  UsersList,
+  UserPage,
 } from '~/features';
 
 function App() {
@@ -13,11 +15,19 @@ function App() {
     <Routes>
       <Route path='/' element={<Layout />}>
         <Route index element={<PostsList />} />
+
         <Route path='post'>
           <Route index element={<AddPostForm />} />
           <Route path=':postId' element={<SinglePostPage />} />
           <Route path='edit/:postId' element={<EditPostForm />} />
         </Route>
+
+        <Route path='user'>
+          <Route index element={<UsersList />} />
+          <Route path=':userId' element={<UserPage />} />
+        </Route>
+
+        <Route path='*' element={<Navigate to='/' replace />} />
       </Route>
     </Routes>
   );

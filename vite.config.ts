@@ -7,7 +7,7 @@ export default ({ mode }) => {
   process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
 
   const PORT = +process.env.PORT;
-  const port = Number.isNaN(PORT) ? 3000 : PORT;
+  const port = Number.isNaN(PORT) || PORT <= 0 ? 3000 : PORT;
 
   return defineConfig({
     plugins: [react()],
