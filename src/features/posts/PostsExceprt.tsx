@@ -1,7 +1,19 @@
+import { memo } from 'react';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { type Post, PostAuthor, ReactionButtons, TimeAgo } from '~/features';
+import { RootState } from '~/app/store';
+import {
+  PostAuthor,
+  ReactionButtons,
+  TimeAgo,
+  selectPostById,
+} from '~/features';
 
-export const PostsExcerpt: React.FC<{ post: Post }> = ({ post }) => {
+export const PostsExcerpt: React.FC<{ postId: string }> = memo(({ postId }) => {
+  const post = useSelector((state: RootState) => selectPostById(state, postId));
+
+  if (!post) return null;
+
   return (
     <article>
       <h2>{post.title}</h2>
@@ -14,6 +26,6 @@ export const PostsExcerpt: React.FC<{ post: Post }> = ({ post }) => {
       <ReactionButtons post={post} />
     </article>
   );
-};
+});
 
 export default PostsExcerpt;
