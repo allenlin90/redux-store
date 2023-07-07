@@ -1,13 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { useDispatch } from 'react-redux';
-import postsReducer from '~/features/posts/postsSlice';
+import { apiSlice } from '~/features';
 import usersReducer from '~/features/users/usersSlice';
 
 export const store = configureStore({
   reducer: {
-    posts: postsReducer,
+    [apiSlice.reducerPath]: apiSlice.reducer,
     users: usersReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(apiSlice.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

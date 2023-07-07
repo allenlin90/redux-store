@@ -1,5 +1,4 @@
-import { useDispatch } from 'react-redux';
-import { type Post, type Reactions, reactionAdded } from '~/features';
+import { useAddReactionMutation, type Post, type Reactions } from '~/features';
 
 type ReactionEmoji = Record<keyof Reactions, string>;
 
@@ -12,7 +11,7 @@ const reactionEmoji: ReactionEmoji = {
 };
 
 export const ReactionButtons: React.FC<{ post: Post }> = ({ post }) => {
-  const dispatch = useDispatch();
+  const [addReaction] = useAddReactionMutation();
 
   const reactionButtons = Object.entries(reactionEmoji).map(([name, emoji]) => {
     const reactionKey = name as keyof Reactions;
@@ -22,9 +21,13 @@ export const ReactionButtons: React.FC<{ post: Post }> = ({ post }) => {
         key={name}
         type='button'
         className='reactionButton'
-        onClick={() =>
-          dispatch(reactionAdded({ postId: post.id, reaction: reactionKey }))
-        }
+        onClick={() => {
+          const newValue = post.reactions[reactionKey] + 1;
+          addReaction({
+            postId: post.id,
+            reactions: { ...post.reactions, [name]: newValue },
+          });
+        }}
       >
         {emoji} {post.reactions[reactionKey]}
       </button>
